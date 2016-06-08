@@ -26,8 +26,8 @@ def main():
             try:
                 data.raise_for_status()
             except Exception as exc:
-                r.db(RDB_DATABASE).table('ArticleStatus').get(url).update({'summarized': 0}, {'summarizable': 0}).run()
-
+                r.db(RDB_DATABASE).table('ArticleStatus').get(url).update({'summarized': 0}).run()
+                r.db(RDB_DATABASE).table('ArticleStatus').get(url).update({'summarizable': 0}).run()
                 print('There was a problem: %s' % (exc))
                 print('Something occured while on %s' % (url))
                 cursor.close()
