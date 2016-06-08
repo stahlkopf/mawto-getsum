@@ -13,7 +13,7 @@ RDB_AUTHKEY = "atom"
 conn = r.connect( RDB_HOST, RDB_PORT, RDB_DATABASE, RDB_AUTHKEY).repl()
 
 def main():
-    EXAMPLE_URL = 'http://newspaperjson1.herokuapp.com/article?url='
+    EXAMPLE_URL = 'http://newspaperjson-test.herokuapp.com/article?url='
 
     cursor = r.db(RDB_DATABASE).table("ArticleStatus").filter((r.row["summarizable"]==1)&(r.row["summarized"]==0)).run()
     for document in cursor:
