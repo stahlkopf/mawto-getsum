@@ -17,8 +17,10 @@ def main():
 
     cursor = r.db(RDB_DATABASE).table("ArticleStatus").filter((r.row["summarizable"]==1)&(r.row["summarized"]==0)).run()
     for document in cursor:
-        x=document.get('link')
-        url=''.join(x).decode('utf-8')
+        dbid=document.get('id')
+        print (dbid)
+        url = document.get('link')
+        print (url)
 
 
         try:
@@ -26,8 +28,8 @@ def main():
             try:
                 data.raise_for_status()
             except Exception as exc:
-                r.db(RDB_DATABASE).table('ArticleStatus').get(url).update({'summarized': 0}).run()
-                r.db(RDB_DATABASE).table('ArticleStatus').get(url).update({'summarizable': 0}).run()
+                r.db(RDB_DATABASE).table('ArticleStatus').get(dbid).update({'summarized': 0}).run()
+                r.db(RDB_DATABASE).table('ArticleStatus').get(dbid).update({'summarizable': 0}).run()
                 print('There was a problem: %s' % (exc))
                 print('Something occured while on %s' % (url))
                 cursor.close()
@@ -49,8 +51,8 @@ def main():
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary7')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('title')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('meta_description')})
-            category = r.db(RDB_DATABASE).table("ArticleGnews").get(url).pluck("category").run()
-            sid = r.db(RDB_DATABASE).table("ArticleStatus").get(document['link']).pluck("id").run()
+            category = r.db(RDB_DATABASE).table("ArticleGnews").get(dbid).pluck("category").run()
+
 
 
             summarybasic = {k: v for k, v in jdata.items() if k.startswith('link')}
@@ -61,13 +63,13 @@ def main():
             summarybasic['summarylong'] = summarybasic.pop('summary7')
             summarybasic.update({k: v for k, v in jdata.items() if k.startswith('top_image')})
             summarybasic.update({'dateinserted':r.now()})
-            summarybasic.update(sid)
+            summarybasic.update({'id': dbid})
             summarybasic.update(category)
 
             summarymain = json.dumps(summarymain, ensure_ascii=False).encode('utf-8')
             summarymain = json.loads(summarymain)
             summarymain.update({'dateinserted':r.now()})
-            summarymain.update(sid)
+            summarymain.update({'id': dbid})
             summarymain.update(category)
 
             articlemedia = {k: v for k, v in jdata.items() if k.startswith('link')}
@@ -76,7 +78,7 @@ def main():
             articlemedia.update({k: v for k, v in jdata.items() if k.startswith('movies')})
             articlemedia = (json.dumps(articlemedia, ensure_ascii=False).encode('utf-8'))
             articlemedia= (json.loads(articlemedia))
-            articlemedia.update(sid)
+            articlemedia.update({'id': dbid})
             articlemedia.update({'dateinserted':r.now()})
             articlemedia.update({'animation':""})
 
@@ -84,7 +86,7 @@ def main():
             meta = json.loads(meta)
             meta.update({'dateinserted':r.now()})
             r.db(RDB_DATABASE).table('ArticleMeta').insert(meta).run()
-            r.db(RDB_DATABASE).table('ArticleStatus').get(url).update({'summarized': 1}).run()
+            r.db(RDB_DATABASE).table('ArticleStatus').get(dbid).update({'summarized': 1}).run()
             r.db(RDB_DATABASE).table('ArticleSummaryMain').insert(summarymain).run()
             r.db(RDB_DATABASE).table('ArticleMedia').insert(articlemedia).run()
             r.db(RDB_DATABASE).table('ArticleSummaryBasic').insert(summarybasic).run()
