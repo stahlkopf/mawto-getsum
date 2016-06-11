@@ -15,7 +15,7 @@ conn = r.connect( RDB_HOST, RDB_PORT, RDB_DATABASE, RDB_AUTHKEY).repl()
 def main():
     EXAMPLE_URL = 'http://newspaperjson-test.herokuapp.com/article?url='
 
-    cursor = r.db(RDB_DATABASE).table("ArticleStatus").filter((r.row["summarizable"]==1)&(r.row["summarized"]==0)).run()
+    cursor = r.db(RDB_DATABASE).table("ArticleStatus").get_all([0, 1], index="todo").run()
     for document in cursor:
         dbid=document.get('id')
         print (dbid)
@@ -32,6 +32,7 @@ def main():
                 r.db(RDB_DATABASE).table('ArticleStatus').get(dbid).update({'summarizable': 0}).run()
                 print('There was a problem: %s' % (exc))
                 print('Something occured while on %s' % (url))
+                print (data)
                 cursor.close()
                 return 0
             #r.db(RDB_DATABASE).table('ArticleStatus').filter({"link" : document['link']}).update({'id': r.uuid(url).run()}).run()
@@ -43,15 +44,22 @@ def main():
 
             summarymain = {k: v for k, v in jdata.items() if k.startswith('link')}
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary1')})
+            summarymain['summaryshort'] = summarymain.pop('summary1')
+            summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary1')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary2')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary3')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary4')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary5')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary6')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary7')})
+            summarymain['summarylong'] = summarymain.pop('summary7')
+            summarymain.update({k: v for k, v in jdata.items() if k.startswith('summary7')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('title')})
             summarymain.update({k: v for k, v in jdata.items() if k.startswith('meta_description')})
             category = r.db(RDB_DATABASE).table("ArticleGnews").get(dbid).pluck("category").run()
+            summarymain.update({'dateinserted':r.now()})
+            summarymain.update({'id': dbid})
+            summarymain.update(category)
 
 
 
@@ -64,20 +72,15 @@ def main():
             summarybasic.update({k: v for k, v in jdata.items() if k.startswith('top_image')})
             summarybasic.update({'dateinserted':r.now()})
             summarybasic.update({'id': dbid})
+            summarybasic.update({k: v for k, v in jdata.items() if k.startswith('meta_description')})
             summarybasic.update(category)
 
-            summarymain = json.dumps(summarymain, ensure_ascii=False).encode('utf-8')
-            summarymain = json.loads(summarymain)
-            summarymain.update({'dateinserted':r.now()})
-            summarymain.update({'id': dbid})
-            summarymain.update(category)
+
 
             articlemedia = {k: v for k, v in jdata.items() if k.startswith('link')}
             articlemedia.update({k: v for k, v in jdata.items() if k.startswith('top_image')})
             articlemedia.update({k: v for k, v in jdata.items() if k.startswith('images')})
             articlemedia.update({k: v for k, v in jdata.items() if k.startswith('movies')})
-            articlemedia = (json.dumps(articlemedia, ensure_ascii=False).encode('utf-8'))
-            articlemedia= (json.loads(articlemedia))
             articlemedia.update({'id': dbid})
             articlemedia.update({'dateinserted':r.now()})
             articlemedia.update({'animation':""})
@@ -85,6 +88,7 @@ def main():
 
             meta = json.loads(meta)
             meta.update({'dateinserted':r.now()})
+            meta.update({'id': dbid})
             r.db(RDB_DATABASE).table('ArticleMeta').insert(meta).run()
             r.db(RDB_DATABASE).table('ArticleStatus').get(dbid).update({'summarized': 1}).run()
             r.db(RDB_DATABASE).table('ArticleSummaryMain').insert(summarymain).run()
