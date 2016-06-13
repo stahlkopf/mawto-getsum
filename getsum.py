@@ -6,14 +6,14 @@ import time
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-RDB_HOST = "testdata.mawto.com"
+RDB_HOST = "data.mawto.com"
 RDB_PORT = 28015
 RDB_DATABASE = "Mawto"
 RDB_AUTHKEY = "atom"
 conn = r.connect( RDB_HOST, RDB_PORT, RDB_DATABASE, RDB_AUTHKEY).repl()
 
 def main():
-    EXAMPLE_URL = 'http://newspaperjson-test.herokuapp.com/article?url='
+    EXAMPLE_URL = 'http://newspaperjson1.herokuapp.com/article?url='
 
     cursor = r.db(RDB_DATABASE).table("ArticleStatus").get_all([0, 1], index="todo").run()
     for document in cursor:
