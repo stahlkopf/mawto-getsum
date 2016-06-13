@@ -3,7 +3,7 @@ import json
 import rethinkdb as r
 import sys
 import time
-import schedule
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 RDB_HOST = "testdata.mawto.com"
